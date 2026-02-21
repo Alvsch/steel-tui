@@ -29,7 +29,7 @@ mimalloc = { version = "0.1.48", optional = true }
 anyhow = "1.0.102"
 
 tracing = "0.1.44"
-tracing-subscriber = { version = "0.3.22", features = ["chrono"] }
+tracing-subscriber = { version = "=0.3.19", features = ["chrono"] }
 
 [profile.release]
 lto = true

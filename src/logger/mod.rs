@@ -20,13 +20,13 @@ pub struct TuiLoggerWriter;
 
 impl Write for TuiLoggerWriter {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        // TODO: remove this replace and make so ANSI codes aren't escaped
-        let buf = String::from_utf8_lossy(buf).replace("\\x1b", "\x1b");
+        let buf = String::from_utf8_lossy(buf).to_string();
+
         if buf.is_empty() {
             return Ok(0);
         }
 
-        let text = buf.into_text().expect("failed to ansi-to-tui conversion");
+        let text = buf.into_text().expect("failed ansi-to-tui conversion");
         LOGGER.lock().push(text);
         REDRAW.notify_one();
 
