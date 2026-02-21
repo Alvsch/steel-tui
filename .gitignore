@@ -1,0 +1,11 @@
+/target
+/config
+/.tmp
+profile.json.gz
+/world
+AGENTS.md
+CLAUDE.md
+.idea/
+.env
+steel-flint/.cache
+/players
