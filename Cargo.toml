@@ -4,6 +4,18 @@ version = "0.1.0"
 edition = "2024"
 authors = ["Alvsch"]
 
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[profile.profiling]
+inherits = "release"
+debug = true
+
 [features]
 default = ["mimalloc"]
 mimalloc = ["dep:mimalloc"]
@@ -30,15 +42,6 @@ anyhow = "1.0.102"
 
 tracing = "0.1.44"
 tracing-subscriber = { version = "=0.3.19", features = ["chrono"] }
-
-[profile.release]
-lto = true
-codegen-units = 1
-panic = "abort"
-
-[profile.profiling]
-inherits = "release"
-debug = true
 
 [lints.rust]
 missing_docs = "warn"
