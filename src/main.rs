@@ -70,13 +70,20 @@ async fn main_async(chunk_runtime: Arc<Runtime>) {
     let terminal = ratatui::init();
 
     let token = CancellationToken::new();
-    let steel_server = SteelServer::new(chunk_runtime, token.clone()).await;
+    let server_token = token.child_token();
 
-    let mut steel = SteelApp::new(steel_server.server.clone(), token);
-    steel
-        .run(terminal, steel_server)
-        .await
-        .expect("error while running server");
+    let steel_server = SteelServer::new(chunk_runtime, server_token.clone()).await;
+
+    let mut steel_app = SteelApp::new(steel_server.server.clone(), token.clone(), server_token);
+    let app_handle = tokio::spawn(async move {
+        steel_app
+            .run(terminal)
+            .await
+            .expect("error while running server");
+    });
+
+    SteelApp::start_server(steel_server).await;
+    app_handle.await.unwrap();
 
     ratatui::restore();
 }

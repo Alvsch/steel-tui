@@ -34,6 +34,7 @@ enum AppEvent {
 /// The main application struct
 pub struct SteelApp {
     server: Arc<Server>,
+    server_token: CancellationToken,
     event_rx: mpsc::Receiver<AppEvent>,
     input: Input,
     scroll_view_state: ScrollViewState,
@@ -48,11 +49,11 @@ impl SteelApp {
     /// # Panics
     /// Panics if the inner thread fails to poll or read events from the terminal
     #[must_use]
-    pub fn new(server: Arc<Server>, token: CancellationToken) -> Self {
+    pub fn new(server: Arc<Server>, token: CancellationToken, server_token: CancellationToken) -> Self {
         let (tx, rx) = mpsc::channel(1);
-        let child = token.child_token();
+        let event_token = token.child_token();
         thread::spawn(move || {
-            while !child.is_cancelled() {
+            while !event_token.is_cancelled() {
                 if event::poll(Duration::from_millis(100)).expect("failed to poll event") {
                     let event = event::read().expect("failed to read event");
                     tx.blocking_send(AppEvent::UiEvent(event))
@@ -63,6 +64,7 @@ impl SteelApp {
 
         Self {
             server,
+            server_token,
             event_rx: rx,
             input: Input::new(String::new()),
             scroll_view_state: ScrollViewState::new(),
@@ -82,7 +84,7 @@ impl SteelApp {
 
     fn submit_message(&mut self) {
         let command = self.input.value_and_reset();
-        if command.is_empty() {
+        if command.is_empty() || self.server_token.is_cancelled() {
             return;
         }
         LOGGER.lock().push(Text::raw(format!("> {command}")));
@@ -99,7 +101,11 @@ impl SteelApp {
         }
 
         if event.code == KeyCode::Char('c') && event.modifiers.contains(KeyModifiers::CONTROL) {
-            self.token.cancel();
+            if self.server_token.is_cancelled() {
+                self.token.cancel()
+            } else {
+                self.server_token.cancel();
+            }
         }
 
         match event.code {
@@ -128,20 +134,56 @@ impl SteelApp {
         }
     }
 
-    /// Start the application and steel server to begin accepting connections
+    /// Starts the steel server
+    pub async fn start_server(mut steel_server: SteelServer) {
+        let server = steel_server.server.clone();
+        let task_tracker = TaskTracker::new();
+
+        steel_server.start(task_tracker.clone()).await;
+        info!("Waiting for pending tasks...");
+
+        task_tracker.close();
+        task_tracker.wait().await;
+
+        for world in &server.worlds {
+            world.chunk_map.task_tracker.close();
+            world.chunk_map.task_tracker.wait().await;
+        }
+
+        // Save all dirty chunks before shutdown
+        info!("Saving world data...");
+        let mut total_saved = 0;
+        for world in &server.worlds {
+            world.cleanup(&mut total_saved).await;
+        }
+        info!("Saved {total_saved} chunks");
+
+        // Save all player data before shutdown
+        info!("Saving player data...");
+        let mut players_to_save = Vec::new();
+        for world in &server.worlds {
+            world.players.iter_players(|_, player| {
+                players_to_save.push(player.clone());
+                true
+            });
+        }
+        match server
+            .player_data_storage
+            .save_all(&players_to_save)
+            .await
+        {
+            Ok(count) => info!("Saved {count} players"),
+            Err(e) => error!("Failed to save player data: {e}"),
+        }
+
+        info!("Server stopped");
+    }
+
+    /// Starts the steel tui application
     pub async fn run(
         &mut self,
         mut terminal: DefaultTerminal,
-        mut steel_server: SteelServer,
     ) -> anyhow::Result<()> {
-        let task_tracker = TaskTracker::new();
-        let handle = {
-            let task_tracker = task_tracker.clone();
-            tokio::spawn(async move {
-                steel_server.start(task_tracker).await;
-            })
-        };
-
         while !self.token.is_cancelled() {
             self.draw(&mut terminal)?;
 
@@ -164,45 +206,6 @@ impl SteelApp {
                 AppEvent::UiEvent(_) => (),
             }
         }
-        handle.await?;
-        info!("Waiting for pending tasks...");
-
-        task_tracker.close();
-        task_tracker.wait().await;
-
-        for world in &self.server.worlds {
-            world.chunk_map.task_tracker.close();
-            world.chunk_map.task_tracker.wait().await;
-        }
-
-        // Save all dirty chunks before shutdown
-        info!("Saving world data...");
-        let mut total_saved = 0;
-        for world in &self.server.worlds {
-            world.cleanup(&mut total_saved).await;
-        }
-        info!("Saved {total_saved} chunks");
-
-        // Save all player data before shutdown
-        info!("Saving player data...");
-        let mut players_to_save = Vec::new();
-        for world in &self.server.worlds {
-            world.players.iter_players(|_, player| {
-                players_to_save.push(player.clone());
-                true
-            });
-        }
-        match self
-            .server
-            .player_data_storage
-            .save_all(&players_to_save)
-            .await
-        {
-            Ok(count) => info!("Saved {count} players"),
-            Err(e) => error!("Failed to save player data: {e}"),
-        }
-
-        info!("Server stopped");
         Ok(())
     }
 }
