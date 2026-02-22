@@ -5,7 +5,7 @@ pub struct LineHistory {
 }
 
 impl LineHistory {
-    const MAX_HISTORY: usize = 100;
+    const MAX_HISTORY: usize = 1000;
 
     pub fn new() -> Self {
         Self {

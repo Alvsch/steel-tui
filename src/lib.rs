@@ -1,10 +1,12 @@
 //! `SteelTui` application made using ratatui
 use crate::logger::LOGGER;
+use anyhow::Context;
 use ratatui::DefaultTerminal;
-use ratatui::crossterm::event;
 use ratatui::crossterm::event::{
-    Event, KeyCode, KeyEvent, KeyModifiers, MouseEvent, MouseEventKind,
+    DisableBracketedPaste, EnableBracketedPaste, EnableMouseCapture, Event, KeyCode, KeyEvent,
+    KeyModifiers, MouseEvent, MouseEventKind,
 };
+use ratatui::crossterm::{ExecutableCommand, event};
 use ratatui::layout::Constraint;
 use ratatui::prelude::*;
 use std::sync::Arc;
@@ -27,6 +29,7 @@ pub(crate) mod logger;
 pub use logger::TuiLoggerWriter;
 use steel_core::command::sender::CommandSender;
 
+#[derive(Debug)]
 enum AppEvent {
     UiEvent(Event),
 }
@@ -115,10 +118,9 @@ impl SteelApp {
         match event.code {
             KeyCode::Enter => self.submit_message(),
             KeyCode::Up => {
-                self.scroll_bottom = false;
-                self.scroll_view_state.scroll_up();
+                self.scroll_up();
             }
-            KeyCode::Down if event.modifiers.contains(KeyModifiers::SHIFT) => {
+            KeyCode::Down if event.modifiers.contains(KeyModifiers::CONTROL) => {
                 self.scroll_bottom = true;
             }
             KeyCode::Down => {
@@ -130,10 +132,18 @@ impl SteelApp {
         }
     }
 
+    const fn scroll_up(&mut self) {
+        self.scroll_bottom = false;
+        self.scroll_view_state.scroll_up();
+    }
+
     const fn handle_mouse(&mut self, event: MouseEvent) {
         match event.kind {
+            MouseEventKind::ScrollDown if event.modifiers.contains(KeyModifiers::CONTROL) => {
+                self.scroll_bottom = true;
+            }
             MouseEventKind::ScrollDown => self.scroll_view_state.scroll_down(),
-            MouseEventKind::ScrollUp => self.scroll_view_state.scroll_up(),
+            MouseEventKind::ScrollUp => self.scroll_up(),
             _ => (),
         }
     }
@@ -181,6 +191,15 @@ impl SteelApp {
 
     /// Starts the steel tui application
     pub async fn run(&mut self, mut terminal: DefaultTerminal) -> anyhow::Result<()> {
+        terminal
+            .backend_mut()
+            .execute(EnableMouseCapture)
+            .context("failed to enable mouse capture")?;
+        terminal
+            .backend_mut()
+            .execute(EnableBracketedPaste)
+            .context("failed to enable bracketed paste")?;
+
         while !self.token.is_cancelled() {
             self.draw(&mut terminal)?;
 
@@ -200,9 +219,24 @@ impl SteelApp {
             match event {
                 AppEvent::UiEvent(Event::Key(event)) => self.handle_key(event),
                 AppEvent::UiEvent(Event::Mouse(event)) => self.handle_mouse(event),
+                AppEvent::UiEvent(Event::Paste(paste)) => {
+                    let mut value = self.input.value_and_reset();
+                    value.push_str(&paste);
+
+                    replace_with::replace_with(
+                        &mut self.input,
+                        || Input::new(String::new()),
+                        |input| input.with_value(value),
+                    );
+                }
                 AppEvent::UiEvent(_) => (),
             }
         }
+
+        terminal
+            .backend_mut()
+            .execute(DisableBracketedPaste)
+            .context("failed to disable bracketed paste")?;
         Ok(())
     }
 }
@@ -221,6 +255,10 @@ impl Widget for &mut SteelApp {
         let content_size = Size::new(text_area.width - 1, text.lines.len() as u16);
         let mut scroll_view = ScrollView::new(content_size)
             .horizontal_scrollbar_visibility(ScrollbarVisibility::Never);
+
+        if self.scroll_view_state.offset().y + text_area.height > content_size.height {
+            self.scroll_bottom = true;
+        }
 
         if self.scroll_bottom {
             self.scroll_view_state.scroll_to_bottom();

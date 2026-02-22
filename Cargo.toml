@@ -39,6 +39,7 @@ tokio = "1.49.0"
 tokio-util = "0.7.18"
 mimalloc = { version = "0.1.48", optional = true }
 anyhow = "1.0.102"
+replace_with = "0.1.8"
 
 tracing = "0.1.44"
 tracing-subscriber = { version = "=0.3.19", features = ["chrono"] }
