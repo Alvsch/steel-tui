@@ -49,7 +49,11 @@ impl SteelApp {
     /// # Panics
     /// Panics if the inner thread fails to poll or read events from the terminal
     #[must_use]
-    pub fn new(server: Arc<Server>, token: CancellationToken, server_token: CancellationToken) -> Self {
+    pub fn new(
+        server: Arc<Server>,
+        token: CancellationToken,
+        server_token: CancellationToken,
+    ) -> Self {
         let (tx, rx) = mpsc::channel(1);
         let event_token = token.child_token();
         thread::spawn(move || {
@@ -102,7 +106,7 @@ impl SteelApp {
 
         if event.code == KeyCode::Char('c') && event.modifiers.contains(KeyModifiers::CONTROL) {
             if self.server_token.is_cancelled() {
-                self.token.cancel()
+                self.token.cancel();
             } else {
                 self.server_token.cancel();
             }
@@ -167,11 +171,7 @@ impl SteelApp {
                 true
             });
         }
-        match server
-            .player_data_storage
-            .save_all(&players_to_save)
-            .await
-        {
+        match server.player_data_storage.save_all(&players_to_save).await {
             Ok(count) => info!("Saved {count} players"),
             Err(e) => error!("Failed to save player data: {e}"),
         }
@@ -180,10 +180,7 @@ impl SteelApp {
     }
 
     /// Starts the steel tui application
-    pub async fn run(
-        &mut self,
-        mut terminal: DefaultTerminal,
-    ) -> anyhow::Result<()> {
+    pub async fn run(&mut self, mut terminal: DefaultTerminal) -> anyhow::Result<()> {
         while !self.token.is_cancelled() {
             self.draw(&mut terminal)?;
 
