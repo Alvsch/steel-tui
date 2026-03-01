@@ -85,5 +85,5 @@ async fn main_async(chunk_runtime: Arc<Runtime>) {
     SteelApp::start_server(steel_server).await;
     app_handle.await.expect("error while awaiting app");
 
-    ratatui::restore();
+    ratatui::try_restore().expect("failed to restore terminal");
 }
