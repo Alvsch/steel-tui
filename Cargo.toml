@@ -17,7 +17,7 @@ inherits = "release"
 debug = true
 
 [features]
-default = ["mimalloc"]
+default = ["mimalloc", "plugin"]
 mimalloc = ["dep:mimalloc"]
 plugin = ["dep:steel-host", "dep:steel-plugin-sdk"]
 

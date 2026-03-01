@@ -4,8 +4,8 @@ use crate::logger::LOGGER;
 use anyhow::Context;
 use ratatui::DefaultTerminal;
 use ratatui::crossterm::event::{
-    DisableBracketedPaste, EnableBracketedPaste, EnableMouseCapture, Event, KeyCode, KeyEvent,
-    KeyModifiers, MouseEvent, MouseEventKind,
+    DisableBracketedPaste, DisableMouseCapture, EnableBracketedPaste, EnableMouseCapture, Event,
+    KeyCode, KeyEvent, KeyModifiers, MouseEvent, MouseEventKind,
 };
 use ratatui::crossterm::{ExecutableCommand, event};
 use ratatui::layout::Constraint;
@@ -33,6 +33,7 @@ mod plugin;
 
 pub use logger::TuiLoggerWriter;
 use steel_core::command::sender::CommandSender;
+use steel_host::register_default_events;
 
 #[derive(Debug)]
 enum AppEvent {
@@ -163,18 +164,14 @@ impl SteelApp {
             Ok((mut manager, registry)) => {
                 use steel_plugin_sdk::event::PlayerJoinEvent;
 
-                // Enable all loaded plugins
+                register_default_events(&registry).await;
                 manager.enable_all().await;
 
-                let event = registry
-                    .call_event(
-                        &mut manager,
-                        PlayerJoinEvent {
-                            cancelled: false,
-                            player: uuid::Uuid::new_v4(),
-                        },
-                    )
-                    .await;
+                let mut event = PlayerJoinEvent {
+                    cancelled: false,
+                    player: uuid::Uuid::new_v4(),
+                };
+                registry.call_event(&mut manager, &mut event).await;
 
                 info!("modified: {event:#?}");
             }
@@ -270,6 +267,10 @@ impl SteelApp {
         terminal
             .backend_mut()
             .execute(DisableBracketedPaste)
+            .context("failed to disable bracketed paste")?;
+        terminal
+            .backend_mut()
+            .execute(DisableMouseCapture)
             .context("failed to disable bracketed paste")?;
         Ok(())
     }
