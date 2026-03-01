@@ -19,6 +19,7 @@ debug = true
 [features]
 default = ["mimalloc"]
 mimalloc = ["dep:mimalloc"]
+plugin = ["dep:steel-host", "dep:steel-plugin-sdk"]
 
 [dependencies]
 steel = { git = "https://github.com/Steel-Foundation/SteelMC" }
@@ -29,6 +30,8 @@ text_components = { git = "https://github.com/Steel-Foundation/TextComponents.gi
     "nbt",
     "serde",
 ] }
+steel-host = { git = "https://github.com/Alvsch/steel-plugin", optional = true }
+steel-plugin-sdk = { git = "https://github.com/Alvsch/steel-plugin", optional = true }
 
 ratatui = "0.30.0"
 ansi-to-tui = "8.0.1"
@@ -43,6 +46,7 @@ replace_with = "0.1.8"
 
 tracing = "0.1.44"
 tracing-subscriber = { version = "=0.3.19", features = ["chrono"] }
+uuid = { version = "1.21.0", features = ["v4"] }
 
 [lints.rust]
 missing_docs = "warn"

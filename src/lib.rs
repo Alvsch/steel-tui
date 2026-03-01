@@ -1,4 +1,5 @@
 //! `SteelTui` application made using ratatui
+
 use crate::logger::LOGGER;
 use anyhow::Context;
 use ratatui::DefaultTerminal;
@@ -26,6 +27,10 @@ use tui_scrollview::{ScrollView, ScrollViewState, ScrollbarVisibility};
 static REDRAW: Notify = Notify::const_new();
 
 pub(crate) mod logger;
+
+#[cfg(feature = "plugin")]
+mod plugin;
+
 pub use logger::TuiLoggerWriter;
 use steel_core::command::sender::CommandSender;
 
@@ -152,6 +157,31 @@ impl SteelApp {
     pub async fn start_server(mut steel_server: SteelServer) {
         let server = steel_server.server.clone();
         let task_tracker = TaskTracker::new();
+
+        #[cfg(feature = "plugin")]
+        match plugin::init("plugins").await {
+            Ok((mut manager, registry)) => {
+                use steel_plugin_sdk::event::PlayerJoinEvent;
+
+                // Enable all loaded plugins
+                manager.enable_all().await;
+
+                let event = registry
+                    .call_event(
+                        &mut manager,
+                        PlayerJoinEvent {
+                            cancelled: false,
+                            player: uuid::Uuid::new_v4(),
+                        },
+                    )
+                    .await;
+
+                info!("modified: {event:#?}");
+            }
+            Err(err) => {
+                error!("Failed to initialize the plugin system: {err}");
+            }
+        }
 
         steel_server.start(task_tracker.clone()).await;
         info!("Waiting for pending tasks...");
