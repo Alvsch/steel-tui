@@ -217,6 +217,10 @@ impl SteelApp {
         }
 
         info!("Server stopped");
+        LOGGER.lock().push(Text::raw(""));
+        LOGGER
+            .lock()
+            .push("Press Ctrl+C again to exit.".white().bold().into());
     }
 
     /// Starts the steel tui application
