@@ -164,14 +164,14 @@ impl SteelApp {
             Ok((mut manager, registry)) => {
                 use steel_plugin_sdk::event::PlayerJoinEvent;
 
-                register_default_events(&registry).await;
+                register_default_events(&registry);
                 manager.enable_all().await;
 
                 let mut event = PlayerJoinEvent {
                     cancelled: false,
                     player: uuid::Uuid::new_v4(),
                 };
-                registry.call_event(&mut manager, &mut event).await;
+                registry.dispatch(&mut manager, &mut event).await;
 
                 info!("modified: {event:#?}");
             }

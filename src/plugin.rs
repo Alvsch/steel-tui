@@ -29,7 +29,7 @@ pub async fn init(
         loaded_plugins.push(loaded_plugin);
     }
 
-    let mut manager = PluginManager::new();
+    let mut manager = PluginManager::new(registry.clone());
     manager.add_all(loaded_plugins);
 
     Ok((manager, registry))

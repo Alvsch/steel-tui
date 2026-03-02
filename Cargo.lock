@@ -3370,9 +3370,10 @@ dependencies = [
 [[package]]
 name = "steel-host"
 version = "0.1.0"
-source = "git+https://github.com/Alvsch/steel-plugin#8e71367a76bbb2f754b4501895d15c0cb2063119"
+source = "git+https://github.com/Alvsch/steel-plugin#eb03f2dfdd447d7ef3d47da08354fcbdeff1d0ed"
 dependencies = [
  "indexmap",
+ "parking_lot",
  "rmp-serde",
  "serde",
  "steel-plugin-sdk",
@@ -3424,7 +3425,7 @@ dependencies = [
 [[package]]
 name = "steel-plugin-macros"
 version = "0.1.0"
-source = "git+https://github.com/Alvsch/steel-plugin#8e71367a76bbb2f754b4501895d15c0cb2063119"
+source = "git+https://github.com/Alvsch/steel-plugin#eb03f2dfdd447d7ef3d47da08354fcbdeff1d0ed"
 dependencies = [
  "quote",
  "rmp",
@@ -3434,7 +3435,7 @@ dependencies = [
 [[package]]
 name = "steel-plugin-sdk"
 version = "0.1.0"
-source = "git+https://github.com/Alvsch/steel-plugin#8e71367a76bbb2f754b4501895d15c0cb2063119"
+source = "git+https://github.com/Alvsch/steel-plugin#eb03f2dfdd447d7ef3d47da08354fcbdeff1d0ed"
 dependencies = [
  "bitflags 2.11.0",
  "rmp-serde",
