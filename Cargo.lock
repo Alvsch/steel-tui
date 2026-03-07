@@ -181,9 +181,6 @@ name = "bitflags"
 version = "2.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "843867be96c8daad0d758b57df9392b6d8d271134fce549de6ce169ff98a92af"
-dependencies = [
- "serde_core",
-]
 
 [[package]]
 name = "block-buffer"
@@ -2532,6 +2529,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c8d0fd677905edcbeedbf2edb6494d676f0e98d54d5cf9bda0b061cb8fb8aba"
 
 [[package]]
+name = "rapidhash"
+version = "4.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b5e48930979c155e2f33aa36ab3119b5ee81332beb6482199a8ecd6029b80b59"
+dependencies = [
+ "rustversion",
+]
+
+[[package]]
 name = "ratatui"
 version = "0.30.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3249,6 +3255,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c790de23124f9ab44544d7ac05d60440adc586479ce501c1d6d7da3cd8c9cf5"
 
 [[package]]
+name = "small-map"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "64c0b79fa0e86d80062670059d27f93911776cdeba2555bf428b455d8738c32f"
+dependencies = [
+ "hashbrown 0.16.1",
+ "rapidhash",
+ "rustc-hash",
+]
+
+[[package]]
 name = "smallvec"
 version = "1.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3292,7 +3309,7 @@ checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 [[package]]
 name = "steel"
 version = "0.1.0"
-source = "git+https://github.com/Steel-Foundation/SteelMC#36dcd2e2027045f2206e0f8dad75682fadf8416c"
+source = "git+https://github.com/Steel-Foundation/SteelMC#bd728f3c3b085aa4befbd59ece8e0206ae43e463"
 dependencies = [
  "base64",
  "chrono",
@@ -3314,7 +3331,7 @@ dependencies = [
 [[package]]
 name = "steel-core"
 version = "0.1.0"
-source = "git+https://github.com/Steel-Foundation/SteelMC#36dcd2e2027045f2206e0f8dad75682fadf8416c"
+source = "git+https://github.com/Steel-Foundation/SteelMC#bd728f3c3b085aa4befbd59ece8e0206ae43e463"
 dependencies = [
  "anyhow",
  "crossbeam",
@@ -3335,6 +3352,7 @@ dependencies = [
  "serde_json",
  "sha2 0.10.9",
  "simdnbt",
+ "small-map",
  "smallvec",
  "steel-crypto",
  "steel-protocol",
@@ -3353,7 +3371,7 @@ dependencies = [
 [[package]]
 name = "steel-crypto"
 version = "0.1.0"
-source = "git+https://github.com/Steel-Foundation/SteelMC#36dcd2e2027045f2206e0f8dad75682fadf8416c"
+source = "git+https://github.com/Steel-Foundation/SteelMC#bd728f3c3b085aa4befbd59ece8e0206ae43e463"
 dependencies = [
  "base64",
  "log",
@@ -3370,10 +3388,8 @@ dependencies = [
 [[package]]
 name = "steel-host"
 version = "0.1.0"
-source = "git+https://github.com/Alvsch/steel-plugin#eb03f2dfdd447d7ef3d47da08354fcbdeff1d0ed"
+source = "git+https://github.com/Alvsch/steel-plugin#813e6ee1ceecf169d3fa977f722d69145010688a"
 dependencies = [
- "indexmap",
- "parking_lot",
  "rmp-serde",
  "serde",
  "steel-plugin-sdk",
@@ -3381,7 +3397,6 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
- "uuid",
  "wasmparser 0.245.1",
  "wasmtime",
  "wasmtime-wasi",
@@ -3390,7 +3405,7 @@ dependencies = [
 [[package]]
 name = "steel-login"
 version = "0.1.0"
-source = "git+https://github.com/Steel-Foundation/SteelMC#36dcd2e2027045f2206e0f8dad75682fadf8416c"
+source = "git+https://github.com/Steel-Foundation/SteelMC#bd728f3c3b085aa4befbd59ece8e0206ae43e463"
 dependencies = [
  "base64",
  "crossbeam",
@@ -3415,7 +3430,7 @@ dependencies = [
 [[package]]
 name = "steel-macros"
 version = "0.1.0"
-source = "git+https://github.com/Steel-Foundation/SteelMC#36dcd2e2027045f2206e0f8dad75682fadf8416c"
+source = "git+https://github.com/Steel-Foundation/SteelMC#bd728f3c3b085aa4befbd59ece8e0206ae43e463"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3425,7 +3440,7 @@ dependencies = [
 [[package]]
 name = "steel-plugin-macros"
 version = "0.1.0"
-source = "git+https://github.com/Alvsch/steel-plugin#eb03f2dfdd447d7ef3d47da08354fcbdeff1d0ed"
+source = "git+https://github.com/Alvsch/steel-plugin#813e6ee1ceecf169d3fa977f722d69145010688a"
 dependencies = [
  "quote",
  "rmp",
@@ -3435,19 +3450,16 @@ dependencies = [
 [[package]]
 name = "steel-plugin-sdk"
 version = "0.1.0"
-source = "git+https://github.com/Alvsch/steel-plugin#eb03f2dfdd447d7ef3d47da08354fcbdeff1d0ed"
+source = "git+https://github.com/Alvsch/steel-plugin#813e6ee1ceecf169d3fa977f722d69145010688a"
 dependencies = [
- "bitflags 2.11.0",
- "rmp-serde",
  "serde",
  "steel-plugin-macros",
- "uuid",
 ]
 
 [[package]]
 name = "steel-protocol"
 version = "0.1.0"
-source = "git+https://github.com/Steel-Foundation/SteelMC#36dcd2e2027045f2206e0f8dad75682fadf8416c"
+source = "git+https://github.com/Steel-Foundation/SteelMC#bd728f3c3b085aa4befbd59ece8e0206ae43e463"
 dependencies = [
  "aes",
  "cfb8",
@@ -3470,7 +3482,7 @@ dependencies = [
 [[package]]
 name = "steel-registry"
 version = "0.1.0"
-source = "git+https://github.com/Steel-Foundation/SteelMC#36dcd2e2027045f2206e0f8dad75682fadf8416c"
+source = "git+https://github.com/Steel-Foundation/SteelMC#bd728f3c3b085aa4befbd59ece8e0206ae43e463"
 dependencies = [
  "heck",
  "log",
@@ -3514,7 +3526,7 @@ dependencies = [
 [[package]]
 name = "steel-utils"
 version = "0.1.0"
-source = "git+https://github.com/Steel-Foundation/SteelMC#36dcd2e2027045f2206e0f8dad75682fadf8416c"
+source = "git+https://github.com/Steel-Foundation/SteelMC#bd728f3c3b085aa4befbd59ece8e0206ae43e463"
 dependencies = [
  "bitflags 2.11.0",
  "crc32c",
@@ -3527,6 +3539,7 @@ dependencies = [
  "phf_codegen 0.13.1",
  "proc-macro2",
  "quote",
+ "rustc-hash",
  "serde",
  "serde_json",
  "simdnbt",

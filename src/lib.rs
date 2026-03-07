@@ -33,7 +33,6 @@ mod plugin;
 
 pub use logger::TuiLoggerWriter;
 use steel_core::command::sender::CommandSender;
-use steel_host::register_default_events;
 
 #[derive(Debug)]
 enum AppEvent {
@@ -161,19 +160,19 @@ impl SteelApp {
 
         #[cfg(feature = "plugin")]
         match plugin::init("plugins").await {
-            Ok((mut manager, registry)) => {
-                use steel_plugin_sdk::event::PlayerJoinEvent;
-
-                register_default_events(&registry);
-                manager.enable_all().await;
-
-                let mut event = PlayerJoinEvent {
-                    cancelled: false,
-                    player: uuid::Uuid::new_v4(),
-                };
-                registry.dispatch(&mut manager, &mut event).await;
-
-                info!("modified: {event:#?}");
+            Ok(_host) => {
+                // use steel_plugin_sdk::event::PlayerJoinEvent;
+                //
+                // register_default_events(&registry);
+                // manager.enable_all().await;
+                //
+                // let mut event = PlayerJoinEvent {
+                //     cancelled: false,
+                //     player: uuid::Uuid::new_v4(),
+                // };
+                // registry.dispatch(&mut manager, &mut event).await;
+                //
+                // info!("modified: {event:#?}");
             }
             Err(err) => {
                 error!("Failed to initialize the plugin system: {err}");
@@ -186,7 +185,7 @@ impl SteelApp {
         task_tracker.close();
         task_tracker.wait().await;
 
-        for world in &server.worlds {
+        for world in server.worlds.values() {
             world.chunk_map.task_tracker.close();
             world.chunk_map.task_tracker.wait().await;
         }
@@ -194,7 +193,7 @@ impl SteelApp {
         // Save all dirty chunks before shutdown
         info!("Saving world data...");
         let mut total_saved = 0;
-        for world in &server.worlds {
+        for world in server.worlds.values() {
             world.cleanup(&mut total_saved).await;
         }
         info!("Saved {total_saved} chunks");
@@ -202,7 +201,7 @@ impl SteelApp {
         // Save all player data before shutdown
         info!("Saving player data...");
         let mut players_to_save = Vec::new();
-        for world in &server.worlds {
+        for world in server.worlds.values() {
             world.players.iter_players(|_, player| {
                 players_to_save.push(player.clone());
                 true
