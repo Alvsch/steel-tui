@@ -154,25 +154,30 @@ impl SteelApp {
     }
 
     /// Starts the steel server
-    pub async fn start_server(mut steel_server: SteelServer) {
+    pub async fn start_server(mut steel_server: SteelServer) -> anyhow::Result<()> {
         let server = steel_server.server.clone();
         let task_tracker = TaskTracker::new();
 
         #[cfg(feature = "plugin")]
         match plugin::init("plugins").await {
-            Ok(_host) => {
-                // use steel_plugin_sdk::event::PlayerJoinEvent;
-                //
-                // register_default_events(&registry);
-                // manager.enable_all().await;
-                //
-                // let mut event = PlayerJoinEvent {
-                //     cancelled: false,
-                //     player: uuid::Uuid::new_v4(),
-                // };
-                // registry.dispatch(&mut manager, &mut event).await;
-                //
-                // info!("modified: {event:#?}");
+            Ok(host) => {
+                use steel_plugin_sdk::event::{PlayerJoinEvent, hash_topic};
+
+                let mut payload = rmp_serde::to_vec(&PlayerJoinEvent {
+                    player_id: uuid::Uuid::new_v4(),
+                    username: "Steve".to_string(),
+                })
+                .context("failed to serialize event")?;
+
+                let handlers = host.state.handler_registry.read().await;
+                handlers
+                    .dispatch_topic(hash_topic(b"PlayerJoinEvent"), &mut payload)
+                    .await;
+
+                let value: PlayerJoinEvent =
+                    rmp_serde::from_slice(&payload).context("failed to deserialize event")?;
+
+                info!("modified {:?}", value);
             }
             Err(err) => {
                 error!("Failed to initialize the plugin system: {err}");
@@ -217,6 +222,7 @@ impl SteelApp {
         LOGGER
             .lock()
             .push("Press Ctrl+C again to exit.".white().bold().into());
+        Ok(())
     }
 
     /// Starts the steel tui application

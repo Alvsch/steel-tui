@@ -28,6 +28,7 @@ fn init_logger() {
     });
 
     let fmt_layer = fmt::layer()
+        .with_ansi_sanitization(false)
         .with_writer(TuiLoggerWriter)
         .with_target(log.module_path);
 
@@ -82,7 +83,10 @@ async fn main_async(chunk_runtime: Arc<Runtime>) {
             .expect("error while running server");
     });
 
-    SteelApp::start_server(steel_server).await;
+    SteelApp::start_server(steel_server)
+        .await
+        .expect("failed to start server");
+
     app_handle.await.expect("error while awaiting app");
 
     ratatui::try_restore().expect("failed to restore terminal");
