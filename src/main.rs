@@ -1,5 +1,7 @@
 //! Main entry point for the Steel Minecraft server with a TUI.
+use std::num::NonZero;
 use std::sync::Arc;
+use std::thread;
 use steel::config::{LogConfig, LogTimeFormat};
 use steel::{STEEL_CONFIG, SteelServer};
 use steel_tui::{SteelApp, TuiLoggerWriter};
@@ -57,8 +59,23 @@ fn init_logger() {
 
 #[allow(clippy::unwrap_used)]
 fn main() {
-    let chunk_runtime = Arc::new(Builder::new_multi_thread().enable_all().build().unwrap());
-    let main_runtime = Builder::new_multi_thread().enable_all().build().unwrap();
+    let half_cpus = (thread::available_parallelism().map_or(4, NonZero::get) / 2).max(2);
+
+    let chunk_runtime = Arc::new(
+        Builder::new_multi_thread()
+            .worker_threads(half_cpus)
+            .thread_name("chunk-worker")
+            .enable_all()
+            .build()
+            .unwrap(),
+    );
+
+    let main_runtime = Builder::new_multi_thread()
+        .worker_threads(half_cpus)
+        .thread_name("main-worker")
+        .enable_all()
+        .build()
+        .unwrap();
 
     main_runtime.block_on(main_async(chunk_runtime.clone()));
 
