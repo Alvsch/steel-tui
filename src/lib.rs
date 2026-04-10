@@ -31,7 +31,7 @@ pub(crate) mod logger;
 #[cfg(feature = "plugin")]
 mod plugin;
 
-pub use logger::TuiLoggerWriter;
+pub use logger::{Logger, TuiLoggerWriter};
 use steel_core::command::sender::CommandSender;
 
 #[derive(Debug)]
@@ -226,7 +226,8 @@ impl SteelApp {
     }
 
     /// Starts the steel tui application
-    pub async fn run(&mut self, mut terminal: DefaultTerminal) -> anyhow::Result<()> {
+    pub async fn run(&mut self) -> anyhow::Result<()> {
+        let mut terminal = ratatui::try_init()?;
         terminal
             .backend_mut()
             .execute(EnableMouseCapture)
@@ -277,6 +278,7 @@ impl SteelApp {
             .backend_mut()
             .execute(DisableMouseCapture)
             .context("failed to disable bracketed paste")?;
+        ratatui::try_restore().context("failed to restore terminal")?;
         Ok(())
     }
 }

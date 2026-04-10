@@ -6,7 +6,10 @@ use std::{
 use crate::REDRAW;
 use crate::logger::line_history::LineHistory;
 use ansi_to_tui::IntoText;
-use steel_utils::locks::SyncMutex;
+use steel_utils::{
+    locks::SyncMutex,
+    logger::{Level, LogData, SteelLogger},
+};
 use tracing_subscriber::fmt::MakeWriter;
 
 mod line_history;
@@ -43,5 +46,27 @@ impl<'a> MakeWriter<'a> for TuiLoggerWriter {
 
     fn make_writer(&'a self) -> Self::Writer {
         *self
+    }
+}
+
+/// An implementation of `SteelLogger`
+pub struct Logger;
+
+impl SteelLogger for Logger {
+    fn log(&self, level: Level, data: LogData) {
+        let message = data.message;
+
+        match level {
+            Level::Tracing(_) => (),
+            Level::Console => {
+                tracing::info!("[Console] {message}");
+            }
+            Level::Chat(player) => {
+                tracing::info!("[Chat: {player}] {message}");
+            }
+            Level::Command(player) => {
+                tracing::info!("[Command: {player}] {message}");
+            }
+        }
     }
 }

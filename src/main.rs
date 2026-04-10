@@ -4,7 +4,8 @@ use std::sync::Arc;
 use std::thread;
 use steel::config::{LogConfig, LogTimeFormat};
 use steel::{STEEL_CONFIG, SteelServer};
-use steel_tui::{SteelApp, TuiLoggerWriter};
+use steel_tui::{Logger, SteelApp, TuiLoggerWriter};
+use steel_utils::logger::STEEL_LOGGER;
 use steel_utils::text::DisplayResolutor;
 use text_components::fmt::set_display_resolutor;
 use tokio::runtime::{Builder, Runtime};
@@ -55,6 +56,11 @@ fn init_logger() {
                 .init();
         }
     }
+
+    STEEL_LOGGER
+        .set(Arc::new(Logger))
+        .map_err(|_| ())
+        .expect("logger already initialized");
 }
 
 #[allow(clippy::unwrap_used)]
@@ -85,7 +91,6 @@ fn main() {
 
 async fn main_async(chunk_runtime: Arc<Runtime>) {
     init_logger();
-    let terminal = ratatui::init();
 
     let token = CancellationToken::new();
     let server_token = token.child_token();
@@ -94,10 +99,7 @@ async fn main_async(chunk_runtime: Arc<Runtime>) {
 
     let mut steel_app = SteelApp::new(steel_server.server.clone(), token.clone(), server_token);
     let app_handle = tokio::spawn(async move {
-        steel_app
-            .run(terminal)
-            .await
-            .expect("error while running server");
+        steel_app.run().await.expect("error while running server");
     });
 
     SteelApp::start_server(steel_server)
@@ -105,6 +107,4 @@ async fn main_async(chunk_runtime: Arc<Runtime>) {
         .expect("failed to start server");
 
     app_handle.await.expect("error while awaiting app");
-
-    ratatui::try_restore().expect("failed to restore terminal");
 }
