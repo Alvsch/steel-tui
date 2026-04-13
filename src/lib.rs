@@ -160,27 +160,69 @@ impl SteelApp {
 
         #[cfg(feature = "plugin")]
         match plugin::init("plugins").await {
-            Ok(host) => {
-                use steel_plugin_sdk::event::{PlayerJoinEvent, hash_topic};
+            Ok((host, api)) => {
+                tokio::spawn(async move {
+                    while let Ok(event) = api.recv_async().await {
+                        match event {
+                            steel_core::PluginApi::PlayerJoinEvent(player) => {
+                                use steel_host::interface::objects;
+                                use steel_plugin_sdk::{event::PlayerJoinEvent, objects::Handle};
 
-                let mut payload = rmp_serde::to_vec(&PlayerJoinEvent {
-                    player_id: uuid::Uuid::new_v4(),
-                    username: "Steve".to_string(),
-                })
-                .context("failed to serialize event")?;
+                                let key = host
+                                    .state
+                                    .register_object_handler(objects::make_player_handler(player))
+                                    .await;
 
-                let handlers = host.state.handler_registry.read().await;
-                handlers
-                    .dispatch_topic(hash_topic(b"PlayerJoinEvent"), &mut payload)
-                    .await;
+                                let event = PlayerJoinEvent {
+                                    player: Handle::from_raw(key),
+                                };
 
-                let value: PlayerJoinEvent =
-                    rmp_serde::from_slice(&payload).context("failed to deserialize event")?;
+                                host.state
+                                    .handler_registry
+                                    .read()
+                                    .await
+                                    .dispatch_topic(&event)
+                                    .await
+                                    .context("failed to dispatch topic")?;
 
-                info!("modified {:?}", value);
+                                host.state
+                                    .unregister_object_handler(key)
+                                    .await
+                                    .context("failed to unregister object")?;
+                            }
+                            steel_core::PluginApi::PlayerLeaveEvent(player) => {
+                                use steel_host::interface::objects;
+                                use steel_plugin_sdk::{event::PlayerLeaveEvent, objects::Handle};
+
+                                let key = host
+                                    .state
+                                    .register_object_handler(objects::make_player_handler(player))
+                                    .await;
+
+                                let event = PlayerLeaveEvent {
+                                    player: Handle::from_raw(key),
+                                };
+
+                                host.state
+                                    .handler_registry
+                                    .read()
+                                    .await
+                                    .dispatch_topic(&event)
+                                    .await
+                                    .context("failed to dispatch topic")?;
+
+                                host.state
+                                    .unregister_object_handler(key)
+                                    .await
+                                    .context("failed to unregister object")?;
+                            }
+                        }
+                    }
+                    anyhow::Result::<()>::Ok(())
+                });
             }
             Err(err) => {
-                error!("Failed to initialize the plugin system: {err}");
+                error!("Failed to initialize the plugin system: {err:?}");
             }
         }
 

@@ -1,11 +1,15 @@
 use anyhow::Context;
+use flume::Receiver;
 use std::path::PathBuf;
 use std::sync::Arc;
+use steel_core::PluginApi;
 use steel_host::wasmtime::{Config, OptLevel};
 use steel_host::{PluginHost, discover_plugins};
 use tokio::fs::create_dir_all;
 
-pub async fn init(plugins_folder: impl Into<PathBuf>) -> anyhow::Result<Arc<PluginHost>> {
+pub async fn init(
+    plugins_folder: impl Into<PathBuf>,
+) -> anyhow::Result<(Arc<PluginHost>, Receiver<PluginApi>)> {
     let mut config = Config::new();
     config.cranelift_opt_level(OptLevel::Speed);
     config.wasm_multi_memory(false);
@@ -49,5 +53,5 @@ pub async fn init(plugins_folder: impl Into<PathBuf>) -> anyhow::Result<Arc<Plug
         enabled.push(plugin);
     }
 
-    Ok(host)
+    Ok((host, steel_core::init_api()))
 }
