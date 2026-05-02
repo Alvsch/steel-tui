@@ -3377,7 +3377,7 @@ checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 [[package]]
 name = "steel"
 version = "0.5.0+mc26.1"
-source = "git+https://github.com/Alvsch/SteelMC?branch=plugin-api#53aadd5120044bed5ba9554e900f74b87df7fd76"
+source = "git+https://github.com/Alvsch/SteelMC?branch=plugin-api#f754ddfba8430b31f109c3087d957509269667b7"
 dependencies = [
  "base64",
  "chrono",
@@ -3399,7 +3399,7 @@ dependencies = [
 [[package]]
 name = "steel-core"
 version = "0.5.0+mc26.1"
-source = "git+https://github.com/Alvsch/SteelMC?branch=plugin-api#53aadd5120044bed5ba9554e900f74b87df7fd76"
+source = "git+https://github.com/Alvsch/SteelMC?branch=plugin-api#f754ddfba8430b31f109c3087d957509269667b7"
 dependencies = [
  "anyhow",
  "arc-swap",
@@ -3448,7 +3448,7 @@ dependencies = [
 [[package]]
 name = "steel-crypto"
 version = "0.5.0+mc26.1"
-source = "git+https://github.com/Alvsch/SteelMC?branch=plugin-api#53aadd5120044bed5ba9554e900f74b87df7fd76"
+source = "git+https://github.com/Alvsch/SteelMC?branch=plugin-api#f754ddfba8430b31f109c3087d957509269667b7"
 dependencies = [
  "base64",
  "log",
@@ -3490,7 +3490,7 @@ dependencies = [
 [[package]]
 name = "steel-login"
 version = "0.5.0+mc26.1"
-source = "git+https://github.com/Alvsch/SteelMC?branch=plugin-api#53aadd5120044bed5ba9554e900f74b87df7fd76"
+source = "git+https://github.com/Alvsch/SteelMC?branch=plugin-api#f754ddfba8430b31f109c3087d957509269667b7"
 dependencies = [
  "base64",
  "crossbeam",
@@ -3515,7 +3515,7 @@ dependencies = [
 [[package]]
 name = "steel-macros"
 version = "0.5.0+mc26.1"
-source = "git+https://github.com/Alvsch/SteelMC?branch=plugin-api#53aadd5120044bed5ba9554e900f74b87df7fd76"
+source = "git+https://github.com/Alvsch/SteelMC?branch=plugin-api#f754ddfba8430b31f109c3087d957509269667b7"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3564,7 +3564,7 @@ dependencies = [
 [[package]]
 name = "steel-protocol"
 version = "0.5.0+mc26.1"
-source = "git+https://github.com/Alvsch/SteelMC?branch=plugin-api#53aadd5120044bed5ba9554e900f74b87df7fd76"
+source = "git+https://github.com/Alvsch/SteelMC?branch=plugin-api#f754ddfba8430b31f109c3087d957509269667b7"
 dependencies = [
  "aes",
  "cfb8",
@@ -3588,7 +3588,7 @@ dependencies = [
 [[package]]
 name = "steel-registry"
 version = "0.5.0+mc26.1"
-source = "git+https://github.com/Alvsch/SteelMC?branch=plugin-api#53aadd5120044bed5ba9554e900f74b87df7fd76"
+source = "git+https://github.com/Alvsch/SteelMC?branch=plugin-api#f754ddfba8430b31f109c3087d957509269667b7"
 dependencies = [
  "glam",
  "heck",
@@ -3635,7 +3635,7 @@ dependencies = [
 [[package]]
 name = "steel-utils"
 version = "0.5.0+mc26.1"
-source = "git+https://github.com/Alvsch/SteelMC?branch=plugin-api#53aadd5120044bed5ba9554e900f74b87df7fd76"
+source = "git+https://github.com/Alvsch/SteelMC?branch=plugin-api#f754ddfba8430b31f109c3087d957509269667b7"
 dependencies = [
  "bitflags 2.11.1",
  "crc32c",
@@ -3663,7 +3663,7 @@ dependencies = [
 [[package]]
 name = "steel-worldgen"
 version = "0.5.0+mc26.1"
-source = "git+https://github.com/Alvsch/SteelMC?branch=plugin-api#53aadd5120044bed5ba9554e900f74b87df7fd76"
+source = "git+https://github.com/Alvsch/SteelMC?branch=plugin-api#f754ddfba8430b31f109c3087d957509269667b7"
 dependencies = [
  "proc-macro2",
  "quote",
