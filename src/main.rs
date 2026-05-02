@@ -1,9 +1,10 @@
 //! Main entry point for the Steel Minecraft server with a TUI.
 use std::num::NonZero;
+use std::path::Path;
 use std::sync::Arc;
 use std::thread;
-use steel::config::{LogConfig, LogTimeFormat};
-use steel::{STEEL_CONFIG, SteelServer};
+use steel::SteelServer;
+use steel::config::{LogConfig, LogTimeFormat, SteelConfig, load_or_create};
 use steel_tui::{Logger, SteelApp, TuiLoggerWriter};
 use steel_utils::logger::STEEL_LOGGER;
 use steel_utils::text::DisplayResolutor;
@@ -19,12 +20,12 @@ use tracing_subscriber::{EnvFilter, fmt};
 #[global_allocator]
 static ALLOC: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
-fn init_logger() {
+fn init_logger(config: &SteelConfig) {
     let env_filter = EnvFilter::builder()
         .with_default_directive(tracing::Level::INFO.into())
         .from_env_lossy();
 
-    let log = STEEL_CONFIG.log.clone().unwrap_or(LogConfig {
+    let log = config.log.clone().unwrap_or(LogConfig {
         time: LogTimeFormat::Uptime,
         module_path: false,
         extra: false,
@@ -90,12 +91,22 @@ fn main() {
 }
 
 async fn main_async(chunk_runtime: Arc<Runtime>) {
-    init_logger();
+    let steel_config = match load_or_create(Path::new("config/config.toml")) {
+        Ok(config) => config,
+        Err(error) => {
+            eprintln!("Failed to load configuration: {error}");
+            return;
+        }
+    };
+
+    init_logger(&steel_config);
 
     let token = CancellationToken::new();
     let server_token = token.child_token();
 
-    let steel_server = SteelServer::new(chunk_runtime, server_token.clone()).await;
+    let steel_server = SteelServer::new(chunk_runtime, server_token.clone(), steel_config)
+        .await
+        .expect("failed to create steel server");
 
     let mut steel_app = SteelApp::new(steel_server.server.clone(), token.clone(), server_token);
     let app_handle = tokio::spawn(async move {
