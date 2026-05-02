@@ -49,6 +49,7 @@ pub struct SteelApp {
     scroll_bottom: bool,
     cursor_position: Position,
     token: CancellationToken,
+    redraw: bool,
 }
 
 impl SteelApp {
@@ -83,10 +84,16 @@ impl SteelApp {
             scroll_bottom: true,
             cursor_position: Position::default(),
             token,
+            redraw: true,
         }
     }
 
     fn draw(&mut self, terminal: &mut DefaultTerminal) -> anyhow::Result<()> {
+        if !self.redraw {
+            self.redraw = true;
+            return Ok(());
+        }
+
         terminal.draw(|frame| {
             frame.render_widget(&mut *self, frame.area());
             frame.set_cursor_position(self.cursor_position);
@@ -149,7 +156,7 @@ impl SteelApp {
             }
             MouseEventKind::ScrollDown => self.scroll_view_state.scroll_down(),
             MouseEventKind::ScrollUp => self.scroll_up(),
-            _ => (),
+            _ => self.redraw = false,
         }
     }
 
